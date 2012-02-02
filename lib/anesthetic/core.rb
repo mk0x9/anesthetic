@@ -1,16 +1,11 @@
 module Anesthetic
 
-  def store_binding(bnd)
-    Anesthetic.binding = bnd
-  end
-
-  def anesthetic_dump(fds)
-    bnd = Anesthetic.binding
+  def anesthetic_dump(bnd, fds)
     puts "#{'*' * 20} Anesthetic dump #{'*' * 20}"
     if not bnd.nil?
       if Anesthetic.dump_local_variables
         locals = eval('local_variables', bnd) unless bnd.nil?
-        puts "==--- Local variables:" 
+        puts "==--- Local variables:"
         locals.each do |k|
           value = eval k.to_s, bnd
           puts "#{k} - #{value}"
@@ -30,21 +25,19 @@ module Anesthetic
       puts fds
     end
     puts "#{'*' * 26} End #{'*' * 26}"
-    store_binding nil
   end
 
   def raise(*args)
+    return unless bnd = caller_binding # http://rubychallenger.blogspot.com/2011/07/caller-binding.html
     fds = nil
     if (args[0] != NoLsofBinaryInPath) && Anesthetic.dump_descriptors
       fds = Descriptors.descriptors
     end
-    anesthetic_dump(fds)
+    anesthetic_dump(bnd, fds)
     super(*args)
   end
 end
 
 class ::Object
-
   include Anesthetic
-
 end
